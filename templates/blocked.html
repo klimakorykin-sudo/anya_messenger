@@ -1,0 +1,39 @@
+﻿{% extends "base.html" %}
+{% block title %}Чёрный список — Anya Messenger{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="header">
+        <h1>🚫 Чёрный список</h1>
+        <nav class="nav">
+            <a href="/">Чаты</a>
+            <a href="/profile">Профиль</a>
+            <a href="/logout">Выйти</a>
+        </nav>
+    </div>
+
+    <p style="color:var(--text-dim)">Те, кого ты заблокировал. С ними нельзя писать — ни тебе, ни им.</p>
+
+    {% if blocked_users %}
+        <ul class="list">
+        {% for u in blocked_users %}
+            <li>
+                <a href="#" class="blocked-item" data-user-id="{{ u.id }}">
+                    {% if u.avatar %}
+                        <img src="/static/avatars/{{ u.avatar }}" alt="" class="avatar-img avatar-img-sm">
+                    {% else %}
+                        <span class="avatar">{{ u.username[0]|upper }}</span>
+                    {% endif %}
+                    <span class="item-name">{{ u.username }}</span>
+                    <span class="last-msg">{{ u.email }}</span>
+                </a>
+                <form method="post" action="/blocked/{{ u.id }}/unblock" class="unblock-form">
+                    <button type="submit" class="btn-secondary btn-small">Разблокировать</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-hint">Ты никого не блокировал 💖</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+﻿{% extends "base.html" %}
+{% block title %}Профиль — Anya Messenger{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="header">
+        <h1>Мой профиль 💖</h1>
+        <nav class="nav">
+            <a href="/">Чаты</a>
+            <a href="/users">Все</a>
+            <a href="/logout">Выйти</a>
+        </nav>
+    </div>
+
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    {% if success %}<div class="success">{{ success }}</div>{% endif %}
+
+    <div class="profile">
+        <div class="profile-avatar">
+            {% if me.avatar %}
+                <img src="/static/avatars/{{ me.avatar }}" alt="avatar" class="avatar-img avatar-img-big">
+            {% else %}
+                <span class="avatar avatar-big">{{ me.username[0]|upper }}</span>
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <h2>{{ me.username }}</h2>
+            <p class="dim">{{ me.email }}</p>
+        </div>
+    </div>
+
+    <form method="post" action="/profile/avatar" enctype="multipart/form-data" style="margin-top:24px">
+        <label>Новая аватарка</label>
+        <input type="file" name="avatar" accept="image/*" required>
+        <button type="submit" style="margin-top:12px">Загрузить</button>
+    </form>
+</div>
+{% endblock %}

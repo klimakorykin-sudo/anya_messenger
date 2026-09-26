@@ -1,0 +1,18 @@
+﻿{% extends "base.html" %}
+{% block title %}Вход — Anya Messenger{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>💖 Вход</h1>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+        <label>Почта</label>
+        <input type="email" name="email" required autofocus>
+
+        <label>Пароль</label>
+        <input type="password" name="password" required>
+
+        <button type="submit">Войти</button>
+    </form>
+    <p style="margin-top:16px">Нет аккаунта? <a href="/register">Зарегистрируйся 💕</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+﻿{% extends "base.html" %}
+{% block title %}Новый чат — Anya Messenger{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="header">
+        <h1>{% if type == "channel" %}📢 Новый канал{% else %}👥 Новая группа{% endif %}</h1>
+        <nav class="nav">
+            <a href="/">Чаты</a>
+            <a href="/profile">Профиль</a>
+            <a href="/logout">Выйти</a>
+        </nav>
+    </div>
+
+    <form method="post" action="/groups/new">
+        <input type="hidden" name="chat_type" value="{{ type }}">
+
+        <label>Название</label>
+        <input type="text" name="name" required minlength="2" maxlength="120" autofocus
+               placeholder="{% if type == 'channel' %}Новости Ани{% else %}Друзья Ани{% endif %}">
+
+        {% if type == "channel" %}
+            <p style="color:var(--text-dim)">
+                В канале писать могут только <b>владелец</b> и <b>админы</b>. Остальные — читают.
+            </p>
+        {% else %}
+            <p style="color:var(--text-dim)">
+                В группе пишут все участники. Можешь позвать друзей.
+            </p>
+        {% endif %}
+
+        <label style="margin-top:16px">Кого добавить</label>
+        <div class="user-picker">
+            {% for u in users %}
+                <label class="user-check">
+                    <input type="checkbox" name="members" value="{{ u.id }}">
+                    {% if u.avatar %}
+                        <img src="/static/avatars/{{ u.avatar }}" alt="" class="avatar-img avatar-img-sm">
+                    {% else %}
+                        <span class="avatar">{{ u.username[0]|upper }}</span>
+                    {% endif %}
+                    <span>{{ u.username }}</span>
+                </label>
+            {% else %}
+                <p class="empty-hint">Пока никого нет — позовёшь позже.</p>
+            {% endfor %}
+        </div>
+
+        <button type="submit" style="margin-top:16px">Создать 💖</button>
+    </form>
+</div>
+{% endblock %}

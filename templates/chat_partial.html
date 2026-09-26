@@ -1,0 +1,156 @@
+﻿<div class="card chat-window"
+     data-chat-id="{{ chat.id }}"
+     data-chat-type="{{ chat.type }}"
+     data-me-id="{{ me.id }}"
+     data-me-name="{{ me.username }}"
+     data-bg="{{ chat.background or '' }}"
+     data-blocked="{{ '1' if is_blocked else '0' }}"
+     data-member-role="{{ member_role }}"
+     data-owner-id="{{ chat.owner_id or '' }}"
+     {% if other %}data-other-id="{{ other.id }}" data-other-superadmin="{{ '1' if other.is_superadmin else '0' }}"{% endif %}>
+
+    <div class="chat-header">
+        <button type="button" class="icon-btn only-mobile" id="back-btn" title="Назад">←</button>
+
+        {% if chat.type == "private" and other %}
+            {% if other.avatar %}
+                <img src="/static/avatars/{{ other.avatar }}" alt="" class="avatar-img avatar-img-sm">
+            {% else %}
+                <span class="avatar">{{ other.username[0]|upper }}</span>
+            {% endif %}
+            <h2>{{ other.username }}{% if other.is_superadmin %} <span class="star">⭐</span>{% endif %}</h2>
+        {% else %}
+            <span class="avatar group-avatar">{% if chat.type == "channel" %}📢{% else %}👥{% endif %}</span>
+            <h2 id="chat-title">{{ chat.name }}</h2>
+        {% endif %}
+
+        <span id="status" class="last-msg"></span>
+
+        {% if chat.type == "private" and other %}
+            {% if other.is_superadmin %}
+                <span class="icon-btn disabled" title="Нельзя заблокировать">🛡️</span>
+            {% else %}
+                <button type="button" class="icon-btn" id="block-btn"
+                        title="{% if is_blocked %}Разблокировать{% else %}Заблокировать{% endif %}">
+                    {% if is_blocked %}✅{% else %}🚫{% endif %}
+                </button>
+            {% endif %}
+        {% else %}
+            {% if member_role in ("owner", "admin") or me.is_superadmin %}
+                <button type="button" class="icon-btn" id="rename-btn" title="Переименовать">✏️</button>
+            {% endif %}
+            <button type="button" class="icon-btn" id="members-btn" title="Участники">👥</button>
+            {% if member_role != "owner" %}
+                <button type="button" class="icon-btn danger" id="leave-btn" title="Выйти">🚪</button>
+            {% endif %}
+        {% endif %}
+
+        <button type="button" class="icon-btn" id="bg-btn" title="Сменить фон">🎨</button>
+    </div>
+
+    <div class="blocked-banner {% if not is_blocked %}hidden{% endif %}" id="blocked-banner">
+        🚫 Вы в чёрном списке друг у друга. Никто не может писать.
+    </div>
+
+    {% if chat.type == "channel" and member_role not in ("owner", "admin") %}
+        <div class="viewer-banner">📖 Ты читатель. В этом канале пишут только админы.</div>
+    {% endif %}
+
+    <div class="messages" id="messages">
+    {% for m in messages %}
+        <div class="msg {% if m.author_id == me.id %}mine{% else %}theirs{% endif %}">
+            {{ m.text }}
+            <span class="meta">{{ m.author.username }} · {{ m.created_at.strftime('%H:%M') }}</span>
+        </div>
+    {% endfor %}
+    </div>
+
+    <form class="chat-form {% if is_blocked %}hidden{% endif %}" id="chat-form">
+        <input type="text" id="msg-input"
+               placeholder="{% if chat.type == 'channel' %}Пост в канал...{% else %}Напиши что-нибудь милое...{% endif %}"
+               autocomplete="off">
+        <button type="submit" id="send-btn">Отправить 💌</button>
+    </form>
+</div>
+
+<!-- Модалка фона -->
+<div class="modal-backdrop" id="bg-modal">
+    <div class="modal">
+        <h2>🎨 Выбери фон</h2>
+        <p style="color:#a06b83;margin-top:0">Фон увидят все участники чата.</p>
+        <div class="bg-grid" id="bg-grid">
+            <div class="bg-swatch bg-rose"     data-bg="bg-rose"></div>
+            <div class="bg-swatch bg-peach"    data-bg="bg-peach"></div>
+            <div class="bg-swatch bg-lavender" data-bg="bg-lavender"></div>
+            <div class="bg-swatch bg-mint"     data-bg="bg-mint"></div>
+            <div class="bg-swatch bg-sky"      data-bg="bg-sky"></div>
+            <div class="bg-swatch bg-sunset"   data-bg="bg-sunset"></div>
+            <div class="bg-swatch bg-candy"    data-bg="bg-candy"></div>
+            <div class="bg-swatch bg-lemon"    data-bg="bg-lemon"></div>
+            <div class="bg-swatch bg-bubble"   data-bg="bg-bubble"></div>
+            <div class="bg-swatch bg-night"    data-bg="bg-night"></div>
+        </div>
+        <label style="margin-top:12px">📷 Или загрузи свою картинку</label>
+        <input type="file" id="bg-file" accept="image/jpeg,image/png,image/webp">
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+            <button type="button" class="btn-secondary" id="bg-upload">Загрузить</button>
+            <button type="button" class="btn-secondary" id="bg-clear">Убрать фон</button>
+            <button type="button" class="btn-secondary" id="bg-close">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка участников -->
+<div class="modal-backdrop" id="members-modal">
+    <div class="modal">
+        <h2>👥 Участники</h2>
+        <ul class="list members-list" id="members-list">
+            {% for m in members %}
+                <li data-user-id="{{ m.user.id }}">
+                    {% if m.user.avatar %}
+                        <img src="/static/avatars/{{ m.user.avatar }}" alt="" class="avatar-img avatar-img-sm">
+                    {% else %}
+                        <span class="avatar">{{ m.user.username[0]|upper }}</span>
+                    {% endif %}
+                    <span class="item-name">{{ m.user.username }}</span>
+                    <span class="last-msg">
+                        {% if m.role == "owner" %}👑 владелец
+                        {% elif m.role == "admin" %}⭐ админ
+                        {% elif m.role == "viewer" %}📖 читатель
+                        {% else %}участник{% endif %}
+                    </span>
+                    {% if member_role in ("owner", "admin") or me.is_superadmin %}
+                        {% if m.role != "owner" and m.user.id != me.id %}
+                            {% if member_role == "owner" or me.is_superadmin %}
+                                {% if m.role != "admin" %}
+                                    <button type="button" class="icon-btn mini promote-btn"
+                                            data-user-id="{{ m.user.id }}" title="Сделать админом">⭐</button>
+                                {% endif %}
+                            {% endif %}
+                            <button type="button" class="icon-btn mini danger kick-btn"
+                                    data-user-id="{{ m.user.id }}" title="Кикнуть">❌</button>
+                        {% endif %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn-secondary" id="members-close" style="margin-top:16px">Закрыть</button>
+    </div>
+</div>
+
+<!-- Модалка переименования -->
+<div class="modal-backdrop" id="rename-modal">
+    <div class="modal">
+        <h2>✏️ Переименовать</h2>
+        <form id="rename-form" method="post">
+            <input type="text" name="name" id="rename-input" required minlength="2" maxlength="120">
+            <div style="display:flex;gap:10px;margin-top:8px">
+                <button type="submit">Сохранить</button>
+                <button type="button" class="btn-secondary" id="rename-close">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Форма выхода (скрытая) -->
+<form id="leave-form" method="post" style="display:none"></form>

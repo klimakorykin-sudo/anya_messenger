@@ -1,0 +1,97 @@
+﻿{% extends "base.html" %}
+{% block title %}Anya Messenger{% endblock %}
+{% block content %}
+<div class="layout"
+     data-me-id="{{ me.id }}"
+     data-me-name="{{ me.username }}"
+     {% if initial_chat_with %}data-initial-chat="{{ initial_chat_with }}"{% endif %}
+     {% if initial_group_id %}data-initial-group="{{ initial_group_id }}"{% endif %}>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-me">
+                {% if me.avatar %}
+                    <img src="/static/avatars/{{ me.avatar }}" alt="" class="avatar-img avatar-img-sm">
+                {% else %}
+                    <span class="avatar">{{ me.username[0]|upper }}</span>
+                {% endif %}
+                <span class="sidebar-name">
+                    {{ me.username }}{% if me.is_superadmin %} <span class="star">⭐</span>{% endif %}
+                </span>
+            </div>
+            <nav class="nav-mini">
+                <button type="button" class="theme-toggle" id="theme-toggle" title="Тема">🌙</button>
+                <a href="/blocked" title="ЧС">🚫</a>
+                <a href="/profile" title="Профиль">⚙️</a>
+                <a href="/logout" title="Выйти">🚪</a>
+            </nav>
+        </div>
+
+        <div class="sidebar-actions">
+            <a href="/groups/new?type=group" class="btn-mini">➕ Группа</a>
+            <a href="/groups/new?type=channel" class="btn-mini">📢 Канал</a>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Поиск 🔍" autocomplete="off">
+        </div>
+
+        <div class="sidebar-tabs">
+            <button type="button" class="tab active" data-tab="chats">💬 Чаты</button>
+            <button type="button" class="tab" data-tab="users">👥 Люди</button>
+        </div>
+
+        <ul class="list sidebar-list" id="tab-chats">
+        {% if chat_list %}
+            {% for item in chat_list %}
+                <li>
+                    {% if item.chat.type == "private" %}
+                        <a href="#" class="chat-link {% if item.blocked %}is-blocked{% endif %}"
+                           data-other-id="{{ item.other.id }}">
+                    {% else %}
+                        <a href="#" class="chat-link group-link"
+                           data-chat-id="{{ item.chat.id }}">
+                    {% endif %}
+                        {% if item.avatar %}
+                            <img src="/static/avatars/{{ item.avatar }}" alt="" class="avatar-img avatar-img-sm">
+                        {% elif item.chat.type == "channel" %}
+                            <span class="avatar group-avatar">📢</span>
+                        {% elif item.chat.type == "group" %}
+                            <span class="avatar group-avatar">👥</span>
+                        {% else %}
+                            <span class="avatar">{{ item.display_name[0]|upper }}</span>
+                        {% endif %}
+                        <span class="item-name">
+                            {{ item.display_name }}
+                            {% if item.chat.type == "channel" %}<small class="badge">канал</small>
+                            {% elif item.chat.type == "group" %}<small class="badge">группа</small>{% endif %}
+                        </span>
+                        {% if item.blocked %}
+                            <span class="last-msg">🚫 в ЧС</span>
+                        {% elif item.last %}
+                            <span class="last-msg">{{ item.last.text }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="empty-hint">Пока нет чатов. Открой «Люди» →</li>
+        {% endif %}
+        </ul>
+
+        <ul class="list sidebar-list hidden" id="tab-users">
+            <li class="empty-hint">Загрузка...</li>
+        </ul>
+    </aside>
+
+    <main class="main-area" id="main-area">
+        <div class="empty-state" id="empty-state">
+            <div class="empty-emoji">💖</div>
+            <p>Выбери чат или найди человека</p>
+        </div>
+        <div id="chat-container" class="chat-container"></div>
+    </main>
+</div>
+
+<script src="/static/chat.js"></script>
+{% endblock %}
