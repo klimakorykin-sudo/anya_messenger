@@ -672,3 +672,24 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
+COPYRIGHT NOTICE
+
+Author of all code in this repository: Klim Koryukin (born 2013).
+
+All rights to this code are transferred to Anna Andreevna Sosnitskaya (born 2013).
+This code is now hers. She decides what happens to it.
+
+No one except Anna Andreevna Sosnitskaya may:
+- modify this code;
+- copy this code;
+- distribute this code;
+- use this code anywhere;
+- claim this code as their own.
+
+None of the above may be done without written permission from Anna Andreevna Sosnitskaya.
+
+This notice is permanent and remains in effect until Anna Andreevna Sosnitskaya revokes it.
+
+Signed: Klim Koryukin
+
+Accepted: Anna Andreevna Sosnitskaya
